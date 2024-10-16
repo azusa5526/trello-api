@@ -9,7 +9,7 @@ export class Container extends Document {
   @Prop({ required: true })
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ isArray: true, type: Card })
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Card' }] })
   cards: Types.DocumentArray<Card>;
 }
