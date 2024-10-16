@@ -6,7 +6,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MongooseExceptionFilter } from 'src/filters/mongoose-exception/mongoose-exception.filter';
 import { Card } from './schema/card.schema';
 
-@ApiTags('cards')
+@ApiTags('Card')
 @UseFilters(MongooseExceptionFilter)
 @Controller('cards')
 export class CardController {

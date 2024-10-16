@@ -6,9 +6,9 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { MongooseExceptionFilter } from '../filters/mongoose-exception/mongoose-exception.filter';
 import { Container } from './schema/container.schema';
 
-@ApiTags('container')
+@ApiTags('Container')
 @UseFilters(MongooseExceptionFilter)
-@Controller('container')
+@Controller('containers')
 export class ContainerController {
   constructor(private readonly containerService: ContainerService) {}
 
