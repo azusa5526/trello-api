@@ -1,25 +1,26 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MaxLength, IsOptional } from 'class-validator';
+import { Attachment } from '../schema/card.schema';
 
 export class CreateCardDto {
   @ApiProperty()
   @MaxLength(64)
   title: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @MaxLength(256)
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ type: String, format: 'date-time' })
+  @ApiPropertyOptional({ type: String, format: 'date-time' })
   @IsOptional()
   date?: Date;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   coverImage?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ type: [Attachment], description: 'List of attachments' })
   @IsOptional()
-  attachments?: string[];
+  attachments?: Attachment[];
 }

@@ -22,7 +22,7 @@ export class CardService {
     const card = new this.cardModel({ ...createCardDto, containerId: containerId });
     await card.save();
 
-    container.cards.push(card._id); // 將卡片ID加入容器
+    container.cards.push(card);
     await container.save();
     console.log(`This action adds a new card to container: ${container.id}`);
     return card;
@@ -65,5 +65,15 @@ export class CardService {
   clear() {
     console.log('Clear All Cards!!', new Date().toLocaleTimeString());
     return this.cardModel.deleteMany();
+  }
+
+  async addAttachments(id: string, attachments: any[]) {
+    const card = await this.cardModel.findById(id).exec();
+    if (!card) {
+      throw new NotFoundException(`Card with id ${id} not found`);
+    }
+
+    card.attachments.push(...attachments); // 將新附件加入列表
+    return card.save(); // 保存變更
   }
 }

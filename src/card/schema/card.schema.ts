@@ -2,9 +2,30 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
 import { Document, Types } from 'mongoose';
+import { ApiObjectIdProperty } from 'src/utils/swagger-utils';
+
+@Schema()
+export class Attachment {
+  @ApiProperty({ example: 'uploads/sample.png' })
+  @Prop()
+  url: string;
+
+  @ApiProperty({ example: 'Sample Image' })
+  @Prop()
+  title: string;
+
+  @ApiProperty({ example: '2024-10-17T07:55:26.948Z' })
+  @Prop()
+  uploadedAt: Date;
+}
+
+export const AttachmentSchema = SchemaFactory.createForClass(Attachment);
 
 @Schema()
 export class Card extends Document {
+  @ApiObjectIdProperty()
+  _id: string;
+
   @ApiProperty()
   @Prop({ required: true })
   title: string;
@@ -24,12 +45,12 @@ export class Card extends Document {
   @IsOptional()
   coverImage: string;
 
-  @ApiPropertyOptional()
-  @Prop({ type: [String] })
+  @ApiPropertyOptional({ type: [Attachment], description: 'List of attachments' })
+  @Prop()
   @IsOptional()
-  attachments: string[];
+  attachments: Attachment[];
 
-  @ApiProperty()
+  @ApiObjectIdProperty()
   @Prop({ type: Types.ObjectId, ref: 'Container', required: true })
   containerId: Types.ObjectId;
 }

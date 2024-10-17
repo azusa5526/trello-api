@@ -42,4 +42,9 @@ export class ContainerService {
     // 最後刪除容器本身
     await this.containerModel.findByIdAndDelete(id).exec();
   }
+
+  clear() {
+    console.log('Clear All Containers!!', new Date().toLocaleTimeString());
+    return this.containerModel.deleteMany();
+  }
 }

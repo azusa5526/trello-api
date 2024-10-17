@@ -6,9 +6,14 @@ import { TodosModule } from './todos/todos.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ContainerModule } from './container/container.module';
 import { CardModule } from './card/card.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Module({
   imports: [
+    MulterModule.register({
+      storage: memoryStorage(),
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],

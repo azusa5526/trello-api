@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters } from '@
 import { ContainerService } from './container.service';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateContainerDto } from './dto/update-container.dto';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MongooseExceptionFilter } from '../filters/mongoose-exception/mongoose-exception.filter';
 import { Container } from './schema/container.schema';
 
@@ -37,5 +37,11 @@ export class ContainerController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.containerService.remove(id);
+  }
+
+  @ApiOperation({ summary: 'WARNING!! 刪除所有 container' })
+  @Delete()
+  clear() {
+    return this.containerService.clear();
   }
 }
