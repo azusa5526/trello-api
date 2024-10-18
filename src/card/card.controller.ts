@@ -112,7 +112,7 @@ export class CardController {
   // 儲存檔案至 uploads 目錄
   private async saveFile(file: Express.Multer.File): Promise<Express.Multer.File> {
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = `${uniqueSuffix}-${file.originalname}`;
+    const filename = `${uniqueSuffix}-${Buffer.from(file.originalname, 'latin1').toString('utf8')}`;
     const filepath = path.resolve(DIR.UPLOAD_DIR, filename);
     await fs.writeFile(filepath, file.buffer); // 寫入檔案
     return {
