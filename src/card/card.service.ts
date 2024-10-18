@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { Card } from './schema/card.schema';
 import { Container } from '../container/schema/container.schema';
 import { deleteAttachments } from '../utils/file-utils';
+import { DIR } from '../constant';
 
 @Injectable()
 export class CardService {
@@ -88,18 +89,19 @@ export class CardService {
     return updatedCard;
   }
 
-  async setCoverImage(cardId: string, fileUrl: string) {
+  async setCoverImage(cardId: string, filename: string) {
     const card = await this.cardModel.findById(cardId).exec();
     if (!card) {
       throw new NotFoundException(`Card with id ${cardId} not found`);
     }
 
+    const fileUrl = `${DIR.UPLOAD_DIR}/${filename}`;
     const updatedCard = await this.cardModel
       .findByIdAndUpdate(
         cardId,
         {
           $set: { coverImage: fileUrl }, // 更新 coverImage
-          $push: { attachments: { url: fileUrl, title: 'Cover Image', uploadedAt: new Date() } }, // 新增至 attachments
+          $push: { attachments: { url: fileUrl, title: filename, uploadedAt: new Date() } }, // 新增至 attachments
         },
         { new: true },
       )

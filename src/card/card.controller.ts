@@ -63,10 +63,8 @@ export class CardController {
     // 儲存圖片至 uploads 目錄
     await fs.writeFile(filepath, file.buffer);
 
-    const fileUrl = `${DIR.UPLOAD_DIR}/${filename}`;
-
     // 更新卡片的 coverImage 和 attachments
-    const updatedCard = await this.cardService.setCoverImage(id, fileUrl);
+    const updatedCard = await this.cardService.setCoverImage(id, filename);
 
     return {
       message: 'Cover image uploaded successfully',
