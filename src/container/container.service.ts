@@ -26,7 +26,7 @@ export class ContainerService {
     return this.containerModel.findById(id).populate('cards');
   }
 
-  update(id: number, updateContainerDto: UpdateContainerDto) {
+  update(id: string, updateContainerDto: UpdateContainerDto) {
     console.log(`This action updates a #${id} container`);
     return this.containerModel.findByIdAndUpdate(id, { $set: updateContainerDto }, { new: true });
   }

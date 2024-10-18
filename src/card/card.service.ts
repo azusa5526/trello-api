@@ -3,6 +3,7 @@ import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import type { Types } from 'mongoose';
 import { Card } from './schema/card.schema';
 import { Container } from '../container/schema/container.schema';
 
@@ -19,12 +20,13 @@ export class CardService {
       throw new NotFoundException(`Container with id ${containerId} not found`);
     }
 
-    const card = new this.cardModel({ ...createCardDto, containerId: containerId });
+    // 建立並保存新卡片
+    const card = new this.cardModel({ ...createCardDto, containerId });
     await card.save();
 
-    container.cards.push(card);
-    await container.save();
-    console.log(`This action adds a new card to container: ${container.id}`);
+    await this.containerModel
+      .findByIdAndUpdate(containerId, { $push: { cards: card._id } }, { new: true })
+      .exec();
     return card;
   }
 
@@ -53,9 +55,8 @@ export class CardService {
     // 找到該卡片所屬的容器，並將其從容器的 cards 列表中移除
     const container = await this.containerModel.findById(card.containerId).exec();
     if (container) {
-      // 使用 filter 方法將 cards 陣列中的對應卡片移除
-      container.cards.pull(card._id); // 使用 Mongoose 的 pull 方法移除卡片的 ObjectId
-      await container.save(); // 保存更新後的容器
+      container.cards = container.cards.filter((cardId) => !cardId.equals(card._id));
+      await container.save();
     }
 
     // 刪除卡片本身

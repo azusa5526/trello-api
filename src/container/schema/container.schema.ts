@@ -15,7 +15,7 @@ export class Container extends Document {
 
   @ApiProperty({ isArray: true, type: Card })
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Card' }] })
-  cards: Types.DocumentArray<Card>;
+  cards: Types.ObjectId[];
 }
 
 export const ContainerSchema = SchemaFactory.createForClass(Container);

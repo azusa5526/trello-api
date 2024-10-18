@@ -31,7 +31,7 @@ export class ContainerController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateContainerDto: UpdateContainerDto) {
-    return this.containerService.update(+id, updateContainerDto);
+    return this.containerService.update(id, updateContainerDto);
   }
 
   @Delete(':id')
