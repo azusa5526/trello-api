@@ -3,9 +3,9 @@ import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import type { Types } from 'mongoose';
 import { Card } from './schema/card.schema';
 import { Container } from '../container/schema/container.schema';
+import { deleteAttachments } from '../utils/file-utils';
 
 @Injectable()
 export class CardService {
@@ -52,12 +52,16 @@ export class CardService {
       throw new NotFoundException(`Card with id ${id} not found`);
     }
 
-    // 找到該卡片所屬的容器，並將其從容器的 cards 列表中移除
-    const container = await this.containerModel.findById(card.containerId).exec();
-    if (container) {
-      container.cards = container.cards.filter((cardId) => !cardId.equals(card._id));
-      await container.save();
-    }
+    // 使用 $pull 操作符從容器的 cards 陣列中移除卡片的 ObjectId
+    await this.containerModel
+      .findOneAndUpdate(
+        { _id: card.containerId }, // 找到對應的容器
+        { $pull: { cards: card._id } }, // 從 cards 陣列中移除該卡片的 ObjectId
+      )
+      .exec();
+
+    // 刪除卡片的附件檔案
+    await deleteAttachments(card.attachments);
 
     // 刪除卡片本身
     await this.cardModel.findByIdAndDelete(id).exec();
@@ -75,6 +79,6 @@ export class CardService {
     }
 
     card.attachments.push(...attachments); // 將新附件加入列表
-    return card.save(); // 保存變更
+    return card.save();
   }
 }
