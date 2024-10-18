@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   UploadedFile,
+  NotFoundException,
 } from '@nestjs/common';
 import { CardService } from './card.service';
 import { CreateCardDto } from './dto/create-card.dto';
@@ -49,6 +50,11 @@ export class CardController {
     @Param('id') id: string,
     @UploadedFile(SharpPipe) file: Express.Multer.File, // 使用 SharpPipe 壓縮圖片
   ) {
+    const card = await this.cardService.findOne(id);
+    if (!card) {
+      throw new NotFoundException(`Card with id ${id} not found`);
+    }
+
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     const filename = `${uniqueSuffix}-${file.originalname}`;
     const filepath = path.resolve(DIR.UPLOAD_DIR, filename);
@@ -86,6 +92,11 @@ export class CardController {
     },
   })
   async uploadAttachments(@Param('id') id: string, @UploadedFiles(SharpPipe) files: Express.Multer.File[]) {
+    const card = await this.cardService.findOne(id);
+    if (!card) {
+      throw new NotFoundException(`Card with id ${id} not found`);
+    }
+
     await fs.mkdir(DIR.UPLOAD_DIR, { recursive: true });
 
     const savedFiles = await Promise.all(files.map((file) => this.saveFile(file)));
