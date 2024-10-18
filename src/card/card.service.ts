@@ -73,24 +73,37 @@ export class CardService {
   }
 
   async addAttachments(id: string, attachments: any[]) {
-    const card = await this.cardModel.findById(id).exec();
-    if (!card) {
+    const updatedCard = await this.cardModel
+      .findByIdAndUpdate(
+        id,
+        { $push: { attachments: { $each: attachments } } }, // 使用 $each 一次性推入多個附件
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedCard) {
       throw new NotFoundException(`Card with id ${id} not found`);
     }
 
-    card.attachments.push(...attachments); // 將新附件加入列表
-    return card.save();
+    return updatedCard;
   }
 
   async setCoverImage(cardId: string, fileUrl: string) {
-    const card = await this.cardModel.findById(cardId).exec();
-    if (!card) {
+    const updatedCard = await this.cardModel
+      .findByIdAndUpdate(
+        cardId,
+        {
+          $set: { coverImage: fileUrl }, // 更新 coverImage
+          $push: { attachments: { url: fileUrl, title: 'Cover Image', uploadedAt: new Date() } }, // 新增至 attachments
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedCard) {
       throw new NotFoundException(`Card with id ${cardId} not found`);
     }
 
-    card.coverImage = fileUrl;
-    card.attachments.push({ url: fileUrl, title: 'Cover Image', uploadedAt: new Date() });
-
-    return card.save();
+    return updatedCard;
   }
 }
