@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -84,6 +84,32 @@ export class CardService {
 
     if (!updatedCard) {
       throw new NotFoundException(`Card with id ${id} not found`);
+    }
+
+    return updatedCard;
+  }
+
+  async removeAttachment(cardId: string, attachmentUrl: string) {
+    const card = await this.cardModel.findById(cardId).exec();
+    if (!card) {
+      throw new NotFoundException(`Card with id ${cardId} not found`);
+    }
+
+    const attachment = card.attachments.find((att) => att.url === attachmentUrl);
+    if (!attachment) {
+      throw new BadRequestException(`Attachment with URL ${attachmentUrl} not found`);
+    }
+
+    // 刪除卡片的單一附件檔案
+    await deleteAttachments({ url: attachmentUrl });
+
+    // 使用 $pull 操作符從 attachments 中移除附件
+    const updatedCard = await this.cardModel
+      .findByIdAndUpdate(cardId, { $pull: { attachments: { url: attachmentUrl } } }, { new: true })
+      .exec();
+
+    if (!updatedCard) {
+      throw new NotFoundException(`Failed to update card with id ${cardId}`);
     }
 
     return updatedCard;

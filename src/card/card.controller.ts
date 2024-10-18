@@ -142,6 +142,25 @@ export class CardController {
     };
   }
 
+  @Delete(':id/attachment')
+  @ApiOperation({ summary: 'Remove an attachment from a card' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', example: 'uploads/sample.png' },
+      },
+    },
+  })
+  async removeAttachment(@Param('id') id: string, @Body('url') url: string) {
+    if (!url) {
+      throw new BadRequestException('URL is required');
+    }
+
+    const updatedCard = await this.cardService.removeAttachment(id, url);
+    return updatedCard;
+  }
+
   @Post()
   create(@Query('containerId') containerId: string, @Body() createCardDto: CreateCardDto) {
     console.log(containerId);
