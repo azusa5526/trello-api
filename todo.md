@@ -1,5 +1,6 @@
  - [x] 增加上傳 coverImage 的功能
  - [x] 修正上傳檔案呼叫後，找不到目標卡片，檔案卻還是照樣上傳上來
  - [ ] 刪除單一 attachment
- - [ ] 修改 coverImage
+ - [x] 修改 coverImage
  - [ ] card 連動刪除 attachment、container 連動刪除 card、attachment 加入組合操作以利 fallback
+ - [ ] 設置 coverImage 的時候，不要將檔案名稱設置為靜態Cover Image，而是使用正常 attachment 的命名

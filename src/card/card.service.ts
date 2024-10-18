@@ -89,6 +89,11 @@ export class CardService {
   }
 
   async setCoverImage(cardId: string, fileUrl: string) {
+    const card = await this.cardModel.findById(cardId).exec();
+    if (!card) {
+      throw new NotFoundException(`Card with id ${cardId} not found`);
+    }
+
     const updatedCard = await this.cardModel
       .findByIdAndUpdate(
         cardId,

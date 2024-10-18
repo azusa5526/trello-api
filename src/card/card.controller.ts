@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UploadedFile,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CardService } from './card.service';
 import { CreateCardDto } from './dto/create-card.dto';
@@ -71,6 +72,27 @@ export class CardController {
       message: 'Cover image uploaded successfully',
       card: updatedCard,
     };
+  }
+
+  @Patch(':id/cover-image')
+  @ApiConsumes('application/json')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', example: 'uploads/image.jpg' },
+      },
+    },
+  })
+  async updateCoverImageByUrl(@Param('id') id: string, @Body('url') url: string) {
+    if (!url) {
+      throw new BadRequestException('URL is required.');
+    }
+
+    // 更新卡片的 coverImage 和 attachments
+    const updatedCard = await this.cardService.setCoverImage(id, url);
+
+    return updatedCard;
   }
 
   @Post(':id/attachments')
