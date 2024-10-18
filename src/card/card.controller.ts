@@ -57,7 +57,7 @@ export class CardController {
     }
 
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = `${uniqueSuffix}-${file.originalname}`;
+    const filename = `${uniqueSuffix}-${Buffer.from(file.originalname, 'latin1').toString('utf8')}`;
     const filepath = path.resolve(DIR.UPLOAD_DIR, filename);
 
     // 儲存圖片至 uploads 目錄
