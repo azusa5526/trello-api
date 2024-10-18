@@ -81,4 +81,16 @@ export class CardService {
     card.attachments.push(...attachments); // 將新附件加入列表
     return card.save();
   }
+
+  async setCoverImage(cardId: string, fileUrl: string) {
+    const card = await this.cardModel.findById(cardId).exec();
+    if (!card) {
+      throw new NotFoundException(`Card with id ${cardId} not found`);
+    }
+
+    card.coverImage = fileUrl;
+    card.attachments.push({ url: fileUrl, title: 'Cover Image', uploadedAt: new Date() });
+
+    return card.save();
+  }
 }

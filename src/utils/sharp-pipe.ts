@@ -8,18 +8,28 @@ const MIN_QUALITY = 10;
 const MAX_QUALITY = 80;
 
 @Injectable()
-export class SharpPipe implements PipeTransform<Express.Multer.File[], Promise<Express.Multer.File[]>> {
-  async transform(files: Express.Multer.File[]): Promise<Express.Multer.File[]> {
-    const processedFiles = Promise.all(
-      files.map(async (file) => {
-        if (file.mimetype.startsWith('image/')) {
-          return await compressImage(file);
-        } else {
-          return file;
-        }
-      }),
-    );
-    return processedFiles;
+export class SharpPipe
+  implements
+    PipeTransform<
+      Express.Multer.File | Express.Multer.File[],
+      Promise<Express.Multer.File | Express.Multer.File[]>
+    >
+{
+  async transform(
+    fileOrFiles: Express.Multer.File | Express.Multer.File[],
+  ): Promise<Express.Multer.File | Express.Multer.File[]> {
+    if (Array.isArray(fileOrFiles)) {
+      return Promise.all(fileOrFiles.map((file) => this.processFile(file)));
+    } else {
+      return this.processFile(fileOrFiles);
+    }
+  }
+
+  private async processFile(file: Express.Multer.File): Promise<Express.Multer.File> {
+    if (file.mimetype.startsWith('image/')) {
+      return await compressImage(file);
+    }
+    return file;
   }
 }
 

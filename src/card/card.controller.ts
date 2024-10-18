@@ -10,6 +10,7 @@ import {
   UseFilters,
   UseInterceptors,
   UploadedFiles,
+  UploadedFile,
 } from '@nestjs/common';
 import { CardService } from './card.service';
 import { CreateCardDto } from './dto/create-card.dto';
@@ -17,7 +18,7 @@ import { UpdateCardDto } from './dto/update-card.dto';
 import { ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MongooseExceptionFilter } from 'src/filters/mongoose-exception/mongoose-exception.filter';
 import { Card } from './schema/card.schema';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody } from '@nestjs/swagger/dist/decorators/api-body.decorator';
 import { SharpPipe } from 'src/utils/sharp-pipe';
 import { DIR } from '../constant';
@@ -29,6 +30,42 @@ import * as path from 'path';
 @Controller('cards')
 export class CardController {
   constructor(private readonly cardService: CardService) {}
+
+  @Post(':id/cover-image')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } })) // 5MB 限制
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  async uploadCoverImage(
+    @Param('id') id: string,
+    @UploadedFile(SharpPipe) file: Express.Multer.File, // 使用 SharpPipe 壓縮圖片
+  ) {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const filename = `${uniqueSuffix}-${file.originalname}`;
+    const filepath = path.resolve(DIR.UPLOAD_DIR, filename);
+
+    // 儲存圖片至 uploads 目錄
+    await fs.writeFile(filepath, file.buffer);
+
+    const fileUrl = `${DIR.UPLOAD_DIR}/${filename}`;
+
+    // 更新卡片的 coverImage 和 attachments
+    const updatedCard = await this.cardService.setCoverImage(id, fileUrl);
+
+    return {
+      message: 'Cover image uploaded successfully',
+      card: updatedCard,
+    };
+  }
 
   @Post(':id/attachments')
   @UseInterceptors(
