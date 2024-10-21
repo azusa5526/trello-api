@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Card, CardSchema } from './schema/card.schema';
 import { Container, ContainerSchema } from 'src/container/schema/container.schema';
 import { SharpPipe } from 'src/utils/sharp-pipe';
+import { ContainerService } from 'src/container/container.service';
 
 @Module({
   imports: [
@@ -12,6 +13,6 @@ import { SharpPipe } from 'src/utils/sharp-pipe';
     MongooseModule.forFeature([{ name: Container.name, schema: ContainerSchema }]),
   ],
   controllers: [CardController],
-  providers: [CardService, SharpPipe],
+  providers: [CardService, SharpPipe, ContainerService],
 })
 export class CardModule {}

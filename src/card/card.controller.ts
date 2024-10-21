@@ -26,12 +26,31 @@ import { SharpPipe } from 'src/utils/sharp-pipe';
 import { DIR } from '../constant';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { ContainerService } from 'src/container/container.service';
 
 @ApiTags('Card')
 @UseFilters(MongooseExceptionFilter)
 @Controller('cards')
 export class CardController {
-  constructor(private readonly cardService: CardService) {}
+  constructor(
+    private readonly cardService: CardService,
+    private readonly containerService: ContainerService,
+  ) {}
+
+  @Patch(':id/move')
+  @ApiOperation({ summary: 'Move a card to another container' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        targetContainerId: { type: 'string' },
+      },
+      required: ['targetContainerId'],
+    },
+  })
+  async moveCard(@Param('id') cardId: string, @Body('targetContainerId') targetContainerId: string) {
+    return this.containerService.moveCard(cardId, targetContainerId);
+  }
 
   @Post(':id/cover-image')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } })) // 5MB 限制

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateContainerDto } from './dto/update-container.dto';
-import { Model, type Types, Connection, ClientSession } from 'mongoose';
+import { Model, Connection, ClientSession, Types } from 'mongoose';
 import { Container } from './schema/container.schema';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Card } from 'src/card/schema/card.schema';
@@ -81,5 +81,53 @@ export class ContainerService {
   clear() {
     console.log('Clear All Containers!!', new Date().toLocaleTimeString());
     return this.containerModel.deleteMany();
+  }
+
+  // 移動卡片到另一個容器
+  async moveCard(id: string, targetContainerId: string) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const card = await this.cardModel.findById(id).exec();
+      if (!card) {
+        throw new NotFoundException(`Card with id ${id} not found`);
+      }
+
+      const oldContainerId = card.containerId;
+
+      if (oldContainerId) {
+        // 從舊容器移除卡片
+        await this.containerModel.updateOne(
+          { _id: oldContainerId },
+          { $pull: { cards: new Types.ObjectId(id) } },
+          { session },
+        );
+      }
+
+      // 將卡片加入新容器
+      await this.containerModel.updateOne(
+        { _id: targetContainerId },
+        { $push: { cards: new Types.ObjectId(id) } },
+        { session },
+      );
+
+      // 更新卡片的 containerId
+      await this.cardModel.updateOne(
+        { _id: id },
+        { $set: { containerId: new Types.ObjectId(targetContainerId) } },
+        { session },
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return { message: `Card moved to container ${targetContainerId}` };
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+
+      handleDatabaseOperationError(error);
+    }
   }
 }
