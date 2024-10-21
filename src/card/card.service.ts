@@ -12,6 +12,7 @@ import { Card } from './schema/card.schema';
 import { Container } from '../container/schema/container.schema';
 import { deleteAttachments } from '../utils/file-utils';
 import { DIR } from '../constant';
+import { handleDatabaseOperationError } from 'src/utils/error-handler';
 
 @Injectable()
 export class CardService {
@@ -93,7 +94,7 @@ export class CardService {
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
-      throw new InternalServerErrorException('Failed to remove card and its attachments');
+      handleDatabaseOperationError(error);
     }
   }
 
@@ -152,11 +153,7 @@ export class CardService {
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
-
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to remove attachment');
+      handleDatabaseOperationError(error);
     }
   }
 
