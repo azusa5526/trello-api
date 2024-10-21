@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateContainerDto } from './dto/update-container.dto';
 import { Model, type Types, Connection, ClientSession } from 'mongoose';
