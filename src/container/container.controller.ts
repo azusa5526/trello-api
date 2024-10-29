@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters, Put } from '@nestjs/common';
 import { ContainerService } from './container.service';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateContainerDto } from './dto/update-container.dto';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MongooseExceptionFilter } from '../filters/mongoose-exception/mongoose-exception.filter';
 import { Container } from './schema/container.schema';
 
@@ -32,6 +32,24 @@ export class ContainerController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateContainerDto: UpdateContainerDto) {
     return this.containerService.update(id, updateContainerDto);
+  }
+
+  @ApiOperation({ summary: '更新容器排序' })
+  @ApiBody({
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', example: '64c88e07c0a0f15d2e6f1e59' },
+          sortIndex: { type: 'number', example: 1 },
+        },
+      },
+    },
+  })
+  @Put('order')
+  updateOrder(@Body() containers: { _id: string; sortIndex: number }[]) {
+    return this.containerService.updateContainerOrder(containers);
   }
 
   @Delete(':id')

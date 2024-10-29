@@ -16,6 +16,10 @@ export class Container extends Document {
   @ApiProperty({ isArray: true, type: Card })
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Card' }] })
   cards: Types.ObjectId[];
+
+  @ApiProperty()
+  @Prop({ required: true, default: 0 })
+  sortIndex: number;
 }
 
 export const ContainerSchema = SchemaFactory.createForClass(Container);

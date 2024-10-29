@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateContainerDto } from './dto/update-container.dto';
 import { Model, Connection, ClientSession, Types } from 'mongoose';
@@ -30,6 +30,25 @@ export class ContainerService {
 
   update(id: string, updateContainerDto: UpdateContainerDto) {
     return this.containerModel.findByIdAndUpdate(id, { $set: updateContainerDto }, { new: true });
+  }
+
+  async updateContainerOrder(containers: { _id: string; sortIndex: number }[]) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      for (const { _id, sortIndex } of containers) {
+        await this.containerModel.updateOne({ _id }, { $set: { sortIndex } }, { session });
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+      return { message: 'Container order updated successfully' };
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      handleDatabaseOperationError(error);
+    }
   }
 
   async remove(id: string) {
