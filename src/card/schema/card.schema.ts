@@ -24,7 +24,7 @@ export const AttachmentSchema = SchemaFactory.createForClass(Attachment);
 @Schema()
 export class Card extends Document {
   @ApiObjectIdProperty()
-  _id: string;
+  _id: Types.ObjectId;
 
   @ApiProperty()
   @Prop({ required: true })
@@ -53,6 +53,10 @@ export class Card extends Document {
   @ApiObjectIdProperty()
   @Prop({ type: Types.ObjectId, ref: 'Container', required: true })
   containerId: Types.ObjectId;
+
+  @ApiProperty({ required: true, default: 0 })
+  @Prop({ required: true, default: 0 })
+  sortIndex: number;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);

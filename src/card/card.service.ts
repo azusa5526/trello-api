@@ -7,7 +7,7 @@ import {
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { Model, Connection } from 'mongoose';
+import { Model, Connection, Types } from 'mongoose';
 import { Card } from './schema/card.schema';
 import { Container } from '../container/schema/container.schema';
 import { deleteAttachments } from '../utils/file-utils';
@@ -32,8 +32,7 @@ export class CardService {
     session.startTransaction();
 
     try {
-      // 建立並保存新卡片至 Container
-      const card = new this.cardModel({ ...createCardDto, containerId });
+      const card = new this.cardModel({ ...createCardDto, containerId: new Types.ObjectId(containerId) });
       await card.save();
 
       await this.containerModel
@@ -180,5 +179,29 @@ export class CardService {
     }
 
     return updatedCard;
+  }
+
+  async updateCardOrder(containerId: string, updatedCards: { _id: string; sortIndex: number }[]) {
+    const session = await this.cardModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      for (const { _id, sortIndex } of updatedCards) {
+        const res = await this.cardModel.updateOne(
+          { _id: new Types.ObjectId(_id), containerId: new Types.ObjectId(containerId) },
+          { $set: { sortIndex } },
+          { session },
+        );
+        console.log(res);
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+      return { message: 'Card order updated successfully' };
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new NotFoundException('Failed to update card order');
+    }
   }
 }

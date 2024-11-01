@@ -27,6 +27,7 @@ import { DIR } from '../constant';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ContainerService } from 'src/container/container.service';
+import { MoveCardDto } from './dto/move-card.dto';
 
 @ApiTags('Card')
 @UseFilters(MongooseExceptionFilter)
@@ -37,19 +38,40 @@ export class CardController {
     private readonly containerService: ContainerService,
   ) {}
 
-  @Patch(':id/move')
-  @ApiOperation({ summary: 'Move a card to another container' })
+  @ApiOperation({ summary: '更新卡片排序' })
   @ApiBody({
     schema: {
-      type: 'object',
-      properties: {
-        targetContainerId: { type: 'string' },
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', example: '671f2fca12b7033d298ee4b7' },
+          sortIndex: { type: 'number', example: 0 },
+        },
       },
-      required: ['targetContainerId'],
     },
   })
-  async moveCard(@Param('id') cardId: string, @Body('targetContainerId') targetContainerId: string) {
-    return this.containerService.moveCard(cardId, targetContainerId);
+  @Patch('order/:containerId')
+  updateOrder(
+    @Param('containerId') containerId: string,
+    @Body() updatedCards: { _id: string; sortIndex: number }[],
+  ) {
+    return this.cardService.updateCardOrder(containerId, updatedCards);
+  }
+
+  @ApiOperation({ summary: '移動卡片到另一個容器並排序' })
+  @ApiBody({
+    description: '指定移動後卡片的位置索引',
+    type: MoveCardDto,
+  })
+  @Patch('move/:cardId/:targetContainerId')
+  async moveCard(
+    @Param('cardId') cardId: string,
+    @Param('targetContainerId') targetContainerId: string,
+    @Body() moveCardDto: MoveCardDto,
+  ) {
+    const { newIndex } = moveCardDto;
+    return this.containerService.moveCard(cardId, targetContainerId, newIndex);
   }
 
   @Post(':id/cover-image')

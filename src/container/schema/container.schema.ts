@@ -7,7 +7,7 @@ import { ApiObjectIdProperty } from 'src/utils/swagger-utils';
 @Schema()
 export class Container extends Document {
   @ApiObjectIdProperty()
-  _id: string;
+  _id: Types.ObjectId;
 
   @ApiProperty()
   @Prop({ required: true })

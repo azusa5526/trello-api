@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateContainerDto } from './dto/update-container.dto';
 import { Model, Connection, ClientSession, Types } from 'mongoose';
@@ -38,7 +38,11 @@ export class ContainerService {
 
     try {
       for (const { _id, sortIndex } of containers) {
-        await this.containerModel.updateOne({ _id }, { $set: { sortIndex } }, { session });
+        await this.containerModel.updateOne(
+          { _id: new Types.ObjectId(_id) },
+          { $set: { sortIndex } },
+          { session },
+        );
       }
 
       await session.commitTransaction();
@@ -103,7 +107,7 @@ export class ContainerService {
   }
 
   // 移動卡片到另一個容器
-  async moveCard(id: string, targetContainerId: string) {
+  async moveCard(id: string, targetContainerId: string, newIndex: number) {
     const session = await this.connection.startSession();
     session.startTransaction();
 
@@ -114,34 +118,48 @@ export class ContainerService {
       }
 
       const oldContainerId = card.containerId;
+      const newContainerId = new Types.ObjectId(targetContainerId);
 
       if (oldContainerId) {
         // 從舊容器移除卡片
         await this.containerModel.updateOne(
           { _id: oldContainerId },
-          { $pull: { cards: new Types.ObjectId(id) } },
+          { $pull: { cards: card._id } },
           { session },
         );
       }
 
-      // 將卡片加入新容器
+      const targetContainer = await this.containerModel.findById(newContainerId).session(session).exec();
+      if (!targetContainer) {
+        throw new NotFoundException(`Container with id ${targetContainerId} not found`);
+      }
+
+      const updatedCards = [...targetContainer.cards];
+      updatedCards.splice(newIndex, 0, card._id); // 插入到指定的 newIndex
+
+      // 更新新容器的 cards 列表
       await this.containerModel.updateOne(
-        { _id: targetContainerId },
-        { $push: { cards: new Types.ObjectId(id) } },
+        { _id: newContainerId },
+        { $set: { cards: updatedCards } },
         { session },
       );
 
       // 更新卡片的 containerId
       await this.cardModel.updateOne(
-        { _id: id },
-        { $set: { containerId: new Types.ObjectId(targetContainerId) } },
+        { _id: card._id },
+        { $set: { containerId: newContainerId } },
         { session },
       );
+
+      // 更新新容器中每個卡片的 sortIndex
+      for (let i = 0; i < updatedCards.length; i++) {
+        await this.cardModel.updateOne({ _id: updatedCards[i] }, { $set: { sortIndex: i } }, { session });
+      }
 
       await session.commitTransaction();
       session.endSession();
 
-      return { message: `Card moved to container ${targetContainerId}` };
+      return { message: `Card moved to container ${newContainerId} with updated order` };
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
